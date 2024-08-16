@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Plugin Name: WordPress Feature Remover
+ * Plugin Name: WP Feature Remover
  * Description: Removes and optimizes unnecessary WordPress features
- * Version: 2.1
- * Author: Your Name
+ * Version: 0.0.1
+ * Author: Gabriel Kanev - Open WP Club
  */
 
 class WordPress_Feature_Remover
