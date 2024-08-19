@@ -137,7 +137,7 @@ class WordPress_Feature_Remover
                 'disable_login_language' => array(
                     'title' => 'Disable Login Language Selector',
                     'description' => 'Removes the language selector from the login page.'
-                ),
+                )
             ),
         );
     }
@@ -271,13 +271,18 @@ class WordPress_Feature_Remover
     public function create_checkbox($args)
     {
         $id = $args['id'];
-        $description = $args['description'];
-        $checked = isset($this->options[$id]) ? checked($this->options[$id], true, false) : '';
-        
-        echo "<label for='$id'>";
-        echo "<input type='checkbox' id='$id' name='wp_feature_remover_options[$id]' value='1' $checked />";
-        echo " <span>{$this->features[$this->get_category_by_id($id)][$id]['title']}</span></label>";
-        echo "<p class='description'>$description</p>";
+        $checked = isset($this->options[$id]) && $this->options[$id] ? 'checked' : '';
+
+        printf(
+            '<input type="checkbox" id="%1$s" name="wp_feature_remover_options[%1$s]" value="1" %2$s />',
+            esc_attr($id),
+            $checked
+        );
+        printf(
+            '<label for="%1$s"> %2$s</label>',
+            esc_attr($id),
+            esc_html($this->features[$id])
+        );
     }
 
     private function get_category_by_id($id)
@@ -305,11 +310,12 @@ class WordPress_Feature_Remover
         if (!empty($this->options)) {
             foreach ($this->options as $feature => $enabled) {
                 if ($enabled && method_exists($this, $feature)) {
-                    $this->$feature();
+                    $this->{$feature}();
                 }
             }
         }
     }
+
 
     // Feature removal methods
     private function remove_generator_tag()
@@ -322,6 +328,7 @@ class WordPress_Feature_Remover
         add_filter('style_loader_src', array($this, 'remove_version_query_arg'), 10, 2);
         add_filter('script_loader_src', array($this, 'remove_version_query_arg'), 10, 2);
     }
+
 
     private function disable_xmlrpc()
     {
@@ -340,6 +347,14 @@ class WordPress_Feature_Remover
         add_filter('the_generator', '__return_empty_string');
     }
 
+    public function remove_version_query_arg($src)
+    {
+        if (strpos($src, 'ver=') !== false) {
+            $src = remove_query_arg('ver', $src);
+        }
+        return $src;
+    }
+    
     private function disable_user_enumeration()
     {
         if (!is_admin()) {
