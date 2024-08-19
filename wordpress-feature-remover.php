@@ -24,6 +24,9 @@ class WordPress_Feature_Remover
 
         $this->init_features();
         $this->options = get_option('wp_feature_remover_options', array());
+        if (!is_array($this->options)) {
+            $this->options = array();
+        }
     }
 
     private function init_features()
@@ -254,9 +257,9 @@ class WordPress_Feature_Remover
     public function sanitize($input)
     {
         $new_input = array();
-        foreach ($this->features as $category_features) {
-            foreach ($category_features as $id => $feature) {
-                $new_input[$id] = isset($input[$id]) ? true : false;
+        foreach ($this->features as $category => $category_features) {
+            foreach ($category_features as $feature => $feature_info) {
+                $new_input[$feature] = isset($input[$feature]) ? (bool)$input[$feature] : false;
             }
         }
         return $new_input;
@@ -307,10 +310,14 @@ class WordPress_Feature_Remover
 
     public function remove_features()
     {
-        if (!empty($this->options)) {
-            foreach ($this->options as $feature => $enabled) {
-                if ($enabled && method_exists($this, $feature)) {
-                    $this->{$feature}();
+        if (empty($this->options) || !is_array($this->options)) {
+            return;
+        }
+
+        foreach ($this->features as $category => $category_features) {
+            foreach ($category_features as $feature => $feature_info) {
+                if (isset($this->options[$feature]) && $this->options[$feature] && method_exists($this, $feature)) {
+                    $this->$feature();
                 }
             }
         }
