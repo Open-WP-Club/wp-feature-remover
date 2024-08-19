@@ -128,11 +128,11 @@ class WordPress_Feature_Remover
                 ),
                 'normalize_login_logo_url' => array(
                     'title' => 'Normalize Login Logo URL',
-                    'description' => 'Changes the login logo link to your site's homepage.'
+                    'description' => 'Changes the login logo link to your sites homepage.'
                 ),
                 'normalize_login_logo_title' => array(
                     'title' => 'Normalize Login Logo Title',
-                    'description' => 'Changes the login logo title to your site's name.'
+                    'description' => 'Changes the login logo title to your sites name.'
                 ),
                 'disable_login_language' => array(
                     'title' => 'Disable Login Language Selector',
@@ -400,3 +400,136 @@ class WordPress_Feature_Remover
     }
 
     private function disable_self_pingbacks()
+    {
+        add_action('pre_ping', function (&$links) {
+            $home = get_option('home');
+            foreach ($links as $l => $link) {
+                if (strpos($link, $home) === 0) {
+                    unset($links[$l]);
+                }
+            }
+        });
+    }
+
+    private function remove_shortlink()
+    {
+        remove_action('wp_head', 'wp_shortlink_wp_head', 10);
+        remove_action('template_redirect', 'wp_shortlink_header', 11);
+    }
+
+    private function remove_wlw_manifest()
+    {
+        remove_action('wp_head', 'wlwmanifest_link');
+    }
+
+    private function remove_rsd_link()
+    {
+        remove_action('wp_head', 'rsd_link');
+    }
+
+    private function remove_dns_prefetch()
+    {
+        add_filter('wp_resource_hints', function ($hints, $relation_type) {
+            if ('dns-prefetch' === $relation_type) {
+                return array_diff(wp_dependencies_unique_hosts(), $hints);
+            }
+            return $hints;
+        }, 10, 2);
+    }
+
+    private function optimize_comment_script()
+    {
+        add_action('wp_enqueue_scripts', function () {
+            if (is_singular() && comments_open() && get_option('thread_comments')) {
+                wp_enqueue_script('comment-reply');
+            } else {
+                wp_dequeue_script('comment-reply');
+            }
+        });
+    }
+
+    private function remove_recent_comments_style()
+    {
+        add_action('widgets_init', function () {
+            global $wp_widget_factory;
+            remove_action('wp_head', array($wp_widget_factory->widgets['WP_Widget_Recent_Comments'], 'recent_comments_style'));
+        });
+    }
+
+    private function disable_comment_hyperlinks()
+    {
+        remove_filter('comment_text', 'make_clickable', 9);
+    }
+
+    private function remove_feed_generator()
+    {
+        add_filter('the_generator', '__return_empty_string');
+    }
+
+    private function remove_feed_links()
+    {
+        remove_action('wp_head', 'feed_links', 2);
+        remove_action('wp_head', 'feed_links_extra', 3);
+    }
+
+    private function disable_feeds()
+    {
+        add_action('do_feed', array($this, 'disable_feed'), 1);
+        add_action('do_feed_rdf', array($this, 'disable_feed'), 1);
+        add_action('do_feed_rss', array($this, 'disable_feed'), 1);
+        add_action('do_feed_rss2', array($this, 'disable_feed'), 1);
+        add_action('do_feed_atom', array($this, 'disable_feed'), 1);
+        add_action('do_feed_rss2_comments', array($this, 'disable_feed'), 1);
+        add_action('do_feed_atom_comments', array($this, 'disable_feed'), 1);
+    }
+
+    public function disable_feed()
+    {
+        wp_die(__('No feed available, please visit the <a href="' . esc_url(home_url('/')) . '">homepage</a>!'));
+    }
+
+    private function reduce_heartbeat_interval()
+    {
+        add_filter('heartbeat_settings', function ($settings) {
+            $settings['interval'] = 60; // Change to 60 seconds
+            return $settings;
+        });
+    }
+
+    private function normalize_favicon()
+    {
+        add_action('do_faviconico', function () {
+            exit('data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==');
+        });
+    }
+
+    private function normalize_login_logo_url()
+    {
+        add_filter('login_headerurl', function () {
+            return home_url();
+        });
+    }
+
+    private function normalize_login_logo_title()
+    {
+        add_filter('login_headertext', function () {
+            return get_bloginfo('name');
+        });
+    }
+
+    private function disable_login_language()
+    {
+        add_filter('login_display_language_dropdown', '__return_false');
+    }
+}
+
+$wordpress_feature_remover = new WordPress_Feature_Remover();
+
+// Add a link to the plugin's settings page on the Plugins page
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'wp_feature_remover_add_settings_link');
+function wp_feature_remover_add_settings_link($links)
+{
+    $settings_link = '<a href="options-general.php?page=wp-feature-remover">' . __('Settings') . '</a>';
+    array_unshift($links, $settings_link);
+    return $links;
+}
