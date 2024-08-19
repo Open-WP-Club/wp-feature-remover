@@ -26,19 +26,19 @@ function wp_feature_remover_admin_page()
             foreach ($wordpress_feature_remover->features as $category => $category_features) {
                 echo "<div id='{$category}' class='wp-feature-remover-tab-content'>";
                 echo "<h2>" . ucfirst($category) . " Features</h2>";
-                echo "<table class='form-table'>";
+                echo "<label class='wp-feature-remover-toggle-all'>";
+                echo "<input type='checkbox' class='toggle-category' data-category='{$category}' /> Toggle All</label>";
+                echo "<div class='wp-feature-remover-grid'>";
                 foreach ($category_features as $id => $feature) {
                     $checked = isset($options[$id]) ? checked($options[$id], true, false) : '';
-                    echo "<tr>";
-                    echo "<th scope='row'>{$feature['title']}</th>";
-                    echo "<td>";
-                    echo "<label><input type='checkbox' id='{$id}' name='wp_feature_remover_options[{$id}]' value='1' {$checked} />";
-                    echo " Enable</label>";
+                    echo "<div class='wp-feature-remover-feature'>";
+                    echo "<label>";
+                    echo "<input type='checkbox' id='{$id}' name='wp_feature_remover_options[{$id}]' value='1' {$checked} />";
+                    echo " {$feature['title']}</label>";
                     echo "<p class='description'>{$feature['description']}</p>";
-                    echo "</td>";
-                    echo "</tr>";
+                    echo "</div>";
                 }
-                echo "</table>";
+                echo "</div>";
                 echo "</div>";
             }
             ?>

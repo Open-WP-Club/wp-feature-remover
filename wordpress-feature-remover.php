@@ -1,9 +1,10 @@
 <?php
+
 /**
  * Plugin Name: WP Feature Remover
  * Description: Removes and optimizes unnecessary WordPress features
- * Version: 0.2.0
- * Author: Gabriel Kanev - Open WP Club (Refactored and Enhanced by Assistant)
+ * Version: 0.0.1
+ * Author: Gabriel Kanev - Open WP Club
  */
 
 if (!defined('ABSPATH')) {
@@ -20,7 +21,7 @@ class WordPress_Feature_Remover
         add_action('admin_menu', array($this, 'add_plugin_page'));
         add_action('admin_init', array($this, 'page_init'));
         add_action('init', array($this, 'remove_features'));
-        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_scripts'));
+        add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_styles'));
 
         $this->init_features();
     }
@@ -29,109 +30,39 @@ class WordPress_Feature_Remover
     {
         $this->features = array(
             'security' => array(
-                'generator_tag' => array(
-                    'title' => 'Remove Generator Tag',
-                    'description' => 'Removes the WordPress version number from the HTML source.',
-                    'callback' => 'remove_generator_tag'
-                ),
-                'script_style_versions' => array(
-                    'title' => 'Remove Script/Style Versions',
-                    'description' => 'Removes version numbers from script and style URLs to improve caching.',
-                    'callback' => 'remove_script_style_versions'
-                ),
+                'remove_generator_tag' => 'Remove Generator Tag',
+                'remove_script_style_versions' => 'Remove Script/Style Versions',
+                'disable_xmlrpc' => 'Disable XML-RPC',
+                'disable_file_editing' => 'Disable File Editing',
+                'hide_wp_version' => 'Hide WordPress Version',
+                'disable_user_enumeration' => 'Disable User Enumeration',
             ),
             'optimization' => array(
-                'jquery_migrate' => array(
-                    'title' => 'Remove jQuery Migrate',
-                    'description' => 'Removes the jQuery Migrate script to reduce page load time.',
-                    'callback' => 'remove_jquery_migrate'
-                ),
-                'emojis' => array(
-                    'title' => 'Disable Emojis',
-                    'description' => 'Disables the built-in emoji functionality to reduce page load time.',
-                    'callback' => 'disable_emojis'
-                ),
-            ),
-            'feeds' => array(
-                'feed_generator' => array(
-                    'title' => 'Remove Feed Generator',
-                    'description' => 'Removes the generator tag from RSS feeds.',
-                    'callback' => 'remove_feed_generator'
-                ),
-                'feed_links' => array(
-                    'title' => 'Remove Feed Links',
-                    'description' => 'Removes RSS feed links from the HTML head.',
-                    'callback' => 'remove_feed_links'
-                ),
-                'disable_feeds' => array(
-                    'title' => 'Disable Feeds',
-                    'description' => 'Completely disables RSS, Atom and RDF feeds.',
-                    'callback' => 'disable_feeds'
-                ),
+                'remove_jquery_migrate' => 'Remove jQuery Migrate',
+                'disable_emojis' => 'Disable Emojis',
+                'disable_embeds' => 'Disable Embeds',
+                'disable_self_pingbacks' => 'Disable Self Pingbacks',
+                'remove_shortlink' => 'Remove Shortlink',
+                'remove_wlw_manifest' => 'Remove WLW Manifest',
+                'remove_rsd_link' => 'Remove RSD Link',
+                'remove_dns_prefetch' => 'Remove DNS Prefetch',
             ),
             'comments' => array(
-                'comment_script' => array(
-                    'title' => 'Optimize Comment Script',
-                    'description' => 'Loads comment reply script only on pages with comments.',
-                    'callback' => 'optimize_comment_script'
-                ),
-                'recent_comments_style' => array(
-                    'title' => 'Remove Recent Comments Style',
-                    'description' => 'Removes inline CSS for recent comments widget.',
-                    'callback' => 'remove_recent_comments_style'
-                ),
-                'comment_hyperlinks' => array(
-                    'title' => 'Disable Comment Hyperlinks',
-                    'description' => 'Prevents automatic hyperlink creation in comments.',
-                    'callback' => 'disable_comment_hyperlinks'
-                ),
+                'optimize_comment_script' => 'Optimize Comment Script',
+                'remove_recent_comments_style' => 'Remove Recent Comments Style',
+                'disable_comment_hyperlinks' => 'Disable Comment Hyperlinks',
+            ),
+            'feeds' => array(
+                'remove_feed_generator' => 'Remove Feed Generator',
+                'remove_feed_links' => 'Remove Feed Links',
+                'disable_feeds' => 'Disable Feeds',
             ),
             'miscellaneous' => array(
-                'wlw_manifest' => array(
-                    'title' => 'Remove WLW Manifest',
-                    'description' => 'Removes Windows Live Writer manifest link.',
-                    'callback' => 'remove_wlw_manifest'
-                ),
-                'rsd_link' => array(
-                    'title' => 'Remove RSD Link',
-                    'description' => 'Removes Really Simple Discovery link.',
-                    'callback' => 'remove_rsd_link'
-                ),
-                'shortlink' => array(
-                    'title' => 'Remove Shortlink',
-                    'description' => 'Removes shortlink from the HTML head.',
-                    'callback' => 'remove_shortlink'
-                ),
-                'dns_prefetch' => array(
-                    'title' => 'Remove DNS Prefetch',
-                    'description' => 'Removes DNS prefetch hints from the HTML head.',
-                    'callback' => 'remove_dns_prefetch'
-                ),
-                'heartbeat' => array(
-                    'title' => 'Reduce Heartbeat Interval',
-                    'description' => 'Increases the interval of the WordPress Heartbeat API.',
-                    'callback' => 'reduce_heartbeat_interval'
-                ),
-                'favicon' => array(
-                    'title' => 'Normalize Favicon',
-                    'description' => 'Provides a default favicon to prevent 404 errors.',
-                    'callback' => 'normalize_favicon'
-                ),
-                'login_logo_url' => array(
-                    'title' => 'Normalize Login Logo URL',
-                    'description' => 'Changes the login logo link to your site's homepage.',
-                    'callback' => 'normalize_login_logo_url'
-                ),
-                'login_logo_title' => array(
-                    'title' => 'Normalize Login Logo Title',
-                    'description' => 'Changes the login logo title to your site's name.',
-                    'callback' => 'normalize_login_logo_title'
-                ),
-                'login_language' => array(
-                    'title' => 'Disable Login Language Selector',
-                    'description' => 'Removes the language selector from the login page.',
-                    'callback' => 'disable_login_language_selector'
-                ),
+                'reduce_heartbeat_interval' => 'Reduce Heartbeat Interval',
+                'normalize_favicon' => 'Normalize Favicon',
+                'normalize_login_logo_url' => 'Normalize Login Logo URL',
+                'normalize_login_logo_title' => 'Normalize Login Logo Title',
+                'disable_login_language' => 'Disable Login Language Selector',
             ),
         );
     }
@@ -149,46 +80,19 @@ class WordPress_Feature_Remover
 
     public function create_admin_page()
     {
-            $this->options = get_option('wp_feature_remover_options', array());
-        ?>
+        $this->options = get_option('wp_feature_remover_options', array());
+?>
         <div class="wrap">
             <h1>WordPress Feature Remover Settings</h1>
             <form method="post" action="options.php">
                 <?php
                 settings_fields('wp_feature_remover_options_group');
+                do_settings_sections('wp-feature-remover');
+                submit_button();
                 ?>
-                <div class="wp-feature-remover-tabs">
-                    <?php
-                    foreach ($this->features as $category => $category_features) {
-                        $category_title = ucfirst($category);
-                        echo "<button class='wp-feature-remover-tab-link' data-tab='{$category}'>{$category_title}</button>";
-                    }
-                    ?>
-                </div>
-                <?php
-                foreach ($this->features as $category => $category_features) {
-                    echo "<div id='{$category}' class='wp-feature-remover-tab-content'>";
-                    echo "<h2>" . ucfirst($category) . " Features</h2>";
-                    echo "<table class='form-table'>";
-                    foreach ($category_features as $id => $feature) {
-                        $checked = isset($this->options[$id]) ? checked($this->options[$id], true, false) : '';
-                        echo "<tr>";
-                        echo "<th scope='row'>{$feature['title']}</th>";
-                        echo "<td>";
-                        echo "<label><input type='checkbox' id='{$id}' name='wp_feature_remover_options[{$id}]' value='1' {$checked} />";
-                        echo " Enable</label>";
-                        echo "<p class='description'>{$feature['description']}</p>";
-                        echo "</td>";
-                        echo "</tr>";
-                    }
-                    echo "</table>";
-                    echo "</div>";
-                }
-                ?>
-                <?php submit_button(); ?>
             </form>
         </div>
-        <?php
+<?php
     }
 
     public function page_init()
@@ -198,43 +102,72 @@ class WordPress_Feature_Remover
             'wp_feature_remover_options',
             array($this, 'sanitize')
         );
+
+        foreach ($this->features as $category => $category_features) {
+            add_settings_section(
+                "wp_feature_remover_section_{$category}",
+                ucfirst($category) . ' Features',
+                array($this, 'print_section_info'),
+                'wp-feature-remover'
+            );
+
+            foreach ($category_features as $id => $title) {
+                add_settings_field(
+                    $id,
+                    $title,
+                    array($this, 'create_checkbox'),
+                    'wp-feature-remover',
+                    "wp_feature_remover_section_{$category}",
+                    array('id' => $id)
+                );
+            }
+        }
     }
 
     public function sanitize($input)
     {
         $new_input = array();
-        foreach ($this->features as $category => $category_features) {
-            foreach ($category_features as $id => $feature) {
+        foreach ($this->features as $category_features) {
+            foreach ($category_features as $id => $title) {
                 $new_input[$id] = isset($input[$id]) ? true : false;
             }
         }
         return $new_input;
     }
 
+    public function print_section_info($args)
+    {
+        $category = str_replace('wp_feature_remover_section_', '', $args['id']);
+        print "Select which {$category} features you want to remove or optimize:";
+    }
+
+    public function create_checkbox($args)
+    {
+        $id = $args['id'];
+        $checked = isset($this->options[$id]) ? checked($this->options[$id], true, false) : '';
+        echo "<input type='checkbox' id='$id' name='wp_feature_remover_options[$id]' value='1' $checked />";
+        echo "<label for='$id'>Enable</label>";
+    }
+
     public function remove_features()
     {
-        $this->options = get_option('wp_feature_remover_options');
+        $this->options = get_option('wp_feature_remover_options', array());
 
-        if (!$this->options) {
-            return;
-        }
-
-        foreach ($this->features as $category_features) {
-            foreach ($category_features as $id => $feature) {
-                if (isset($this->options[$id]) && $this->options[$id] && method_exists($this, $feature['callback'])) {
-                    $this->{$feature['callback']}();
+        if (!empty($this->options)) {
+            foreach ($this->options as $feature => $enabled) {
+                if ($enabled && method_exists($this, $feature)) {
+                    $this->$feature();
                 }
             }
         }
     }
 
-    public function enqueue_admin_scripts($hook)
+    public function enqueue_admin_styles($hook)
     {
         if ('settings_page_wp-feature-remover' !== $hook) {
             return;
         }
-        wp_enqueue_style('wp-feature-remover-admin', plugins_url('admin-styles.css', __FILE__), array(), '0.2.0');
-        wp_enqueue_script('wp-feature-remover-admin', plugins_url('admin-scripts.js', __FILE__), array('jquery'), '0.2.0', true);
+        wp_enqueue_style('wp-feature-remover-admin', plugins_url('admin-styles.css', __FILE__));
     }
 
     // Feature removal methods
@@ -243,12 +176,36 @@ class WordPress_Feature_Remover
         remove_action('wp_head', 'wp_generator');
     }
 
-    private function remove_script_style_versions($src)
+    private function remove_script_style_versions()
     {
-        if (strpos($src, 'ver=')) {
-            $src = remove_query_arg('ver', $src);
+        add_filter('style_loader_src', array($this, 'remove_version_query_arg'), 10, 2);
+        add_filter('script_loader_src', array($this, 'remove_version_query_arg'), 10, 2);
+    }
+
+    private function disable_xmlrpc()
+    {
+        add_filter('xmlrpc_enabled', '__return_false');
+    }
+
+    private function disable_file_editing()
+    {
+        if (!defined('DISALLOW_FILE_EDIT')) {
+            define('DISALLOW_FILE_EDIT', true);
         }
-        return $src;
+    }
+
+    private function hide_wp_version()
+    {
+        add_filter('the_generator', '__return_empty_string');
+    }
+
+    private function disable_user_enumeration()
+    {
+        if (!is_admin()) {
+            if (isset($_REQUEST['author'])) {
+                wp_die('Author parameter is forbidden.');
+            }
+        }
     }
 
     private function remove_jquery_migrate()
@@ -275,26 +232,53 @@ class WordPress_Feature_Remover
         add_filter('tiny_mce_plugins', array($this, 'disable_emojis_tinymce'));
     }
 
-    private function remove_feed_generator()
+    private function disable_embeds()
     {
-        add_filter('the_generator', '__return_false');
+        global $wp;
+        $wp->public_query_vars = array_diff($wp->public_query_vars, array('embed'));
+        remove_action('rest_api_init', 'wp_oembed_register_route');
+        add_filter('embed_oembed_discover', '__return_false');
+        remove_filter('oembed_dataparse', 'wp_filter_oembed_result', 10);
+        remove_action('wp_head', 'wp_oembed_add_discovery_links');
+        remove_action('wp_head', 'wp_oembed_add_host_js');
     }
 
-    private function remove_feed_links()
+    private function disable_self_pingbacks()
     {
-        remove_action('wp_head', 'feed_links', 2);
-        remove_action('wp_head', 'feed_links_extra', 3);
+        add_action('pre_ping', function (&$links) {
+            $home = get_option('home');
+            foreach ($links as $l => $link) {
+                if (0 === strpos($link, $home)) {
+                    unset($links[$l]);
+                }
+            }
+        });
     }
 
-    private function disable_feeds()
+    private function remove_shortlink()
     {
-        add_action('do_feed', array($this, 'disable_feed'), 1);
-        add_action('do_feed_rdf', array($this, 'disable_feed'), 1);
-        add_action('do_feed_rss', array($this, 'disable_feed'), 1);
-        add_action('do_feed_rss2', array($this, 'disable_feed'), 1);
-        add_action('do_feed_atom', array($this, 'disable_feed'), 1);
-        add_action('do_feed_rss2_comments', array($this, 'disable_feed'), 1);
-        add_action('do_feed_atom_comments', array($this, 'disable_feed'), 1);
+        remove_action('wp_head', 'wp_shortlink_wp_head', 10);
+        remove_action('template_redirect', 'wp_shortlink_header', 11);
+    }
+
+    private function remove_wlw_manifest()
+    {
+        remove_action('wp_head', 'wlwmanifest_link');
+    }
+
+    private function remove_rsd_link()
+    {
+        remove_action('wp_head', 'rsd_link');
+    }
+
+    private function remove_dns_prefetch()
+    {
+        add_filter('wp_resource_hints', function ($hints, $relation_type) {
+            if ('dns-prefetch' === $relation_type) {
+                return array_diff(wp_dependencies_unique_hosts(), $hints);
+            }
+            return $hints;
+        }, 10, 2);
     }
 
     private function optimize_comment_script()
@@ -321,29 +305,26 @@ class WordPress_Feature_Remover
         remove_filter('comment_text', 'make_clickable', 9);
     }
 
-    private function remove_wlw_manifest()
+    private function remove_feed_generator()
     {
-        remove_action('wp_head', 'wlwmanifest_link');
+        add_filter('the_generator', '__return_false');
     }
 
-    private function remove_rsd_link()
+    private function remove_feed_links()
     {
-        remove_action('wp_head', 'rsd_link');
+        remove_action('wp_head', 'feed_links', 2);
+        remove_action('wp_head', 'feed_links_extra', 3);
     }
 
-    private function remove_shortlink()
+    private function disable_feeds()
     {
-        remove_action('wp_head', 'wp_shortlink_wp_head');
-    }
-
-    private function remove_dns_prefetch()
-    {
-        add_filter('wp_resource_hints', function ($hints, $relation_type) {
-            if ('dns-prefetch' === $relation_type) {
-                return array_diff(wp_dependencies_unique_hosts(), $hints);
-            }
-            return $hints;
-        }, 10, 2);
+        add_action('do_feed', array($this, 'disable_feed'), 1);
+        add_action('do_feed_rdf', array($this, 'disable_feed'), 1);
+        add_action('do_feed_rss', array($this, 'disable_feed'), 1);
+        add_action('do_feed_rss2', array($this, 'disable_feed'), 1);
+        add_action('do_feed_atom', array($this, 'disable_feed'), 1);
+        add_action('do_feed_rss2_comments', array($this, 'disable_feed'), 1);
+        add_action('do_feed_atom_comments', array($this, 'disable_feed'), 1);
     }
 
     private function reduce_heartbeat_interval()
@@ -375,7 +356,7 @@ class WordPress_Feature_Remover
         });
     }
 
-    private function disable_login_language_selector()
+    private function disable_login_language()
     {
         add_filter('login_display_language_dropdown', '__return_false');
     }
@@ -409,24 +390,4 @@ function wp_feature_remover_add_settings_link($links)
     $settings_link = '<a href="options-general.php?page=wp-feature-remover">' . __('Settings') . '</a>';
     array_unshift($links, $settings_link);
     return $links;
-}
-
-// Activation hook
-register_activation_hook(__FILE__, 'wp_feature_remover_activate');
-function wp_feature_remover_activate()
-{
-    // You can add any initialization code here
-    // For example, set default options if they don't exist
-    if (!get_option('wp_feature_remover_options')) {
-        update_option('wp_feature_remover_options', array());
-    }
-}
-
-// Deactivation hook
-register_deactivation_hook(__FILE__, 'wp_feature_remover_deactivate');
-function wp_feature_remover_deactivate()
-{
-    // You can add any cleanup code here
-    // For example, remove the plugin's options
-    // delete_option('wp_feature_remover_options');
 }
