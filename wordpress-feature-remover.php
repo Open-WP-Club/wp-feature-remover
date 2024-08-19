@@ -23,10 +23,7 @@ class WordPress_Feature_Remover
         add_action('admin_enqueue_scripts', array($this, 'enqueue_admin_assets'));
 
         $this->init_features();
-        $this->options = get_option('wp_feature_remover_options', array());
-        if (!is_array($this->options)) {
-            $this->options = array();
-        }
+        $this->init_options();
     }
 
     private function init_features()
@@ -143,6 +140,21 @@ class WordPress_Feature_Remover
                 )
             ),
         );
+    }
+
+    private function init_options()
+    {
+        $default_options = array();
+        foreach ($this->features as $category => $category_features) {
+            foreach ($category_features as $feature => $feature_info) {
+                $default_options[$feature] = false;
+            }
+        }
+        
+        $existing_options = get_option('wp_feature_remover_options', array());
+        $this->options = wp_parse_args($existing_options, $default_options);
+        
+        update_option('wp_feature_remover_options', $this->options);
     }
 
     public function add_plugin_page()
@@ -284,18 +296,8 @@ class WordPress_Feature_Remover
         printf(
             '<label for="%1$s"> %2$s</label>',
             esc_attr($id),
-            esc_html($this->features[$id])
+            esc_html($args['description'])
         );
-    }
-
-    private function get_category_by_id($id)
-    {
-        foreach ($this->features as $category => $features) {
-            if (isset($features[$id])) {
-                return $category;
-            }
-        }
-        return '';
     }
 
     public function enqueue_admin_assets($hook)
@@ -310,19 +312,14 @@ class WordPress_Feature_Remover
 
     public function remove_features()
     {
-        if (empty($this->options) || !is_array($this->options)) {
-            return;
-        }
-
         foreach ($this->features as $category => $category_features) {
             foreach ($category_features as $feature => $feature_info) {
-                if (isset($this->options[$feature]) && $this->options[$feature] && method_exists($this, $feature)) {
+                if (!empty($this->options[$feature]) && method_exists($this, $feature)) {
                     $this->$feature();
                 }
             }
         }
     }
-
 
     // Feature removal methods
     private function remove_generator_tag()
@@ -335,7 +332,6 @@ class WordPress_Feature_Remover
         add_filter('style_loader_src', array($this, 'remove_version_query_arg'), 10, 2);
         add_filter('script_loader_src', array($this, 'remove_version_query_arg'), 10, 2);
     }
-
 
     private function disable_xmlrpc()
     {
@@ -528,6 +524,15 @@ class WordPress_Feature_Remover
     {
         add_filter('login_display_language_dropdown', '__return_false');
     }
+
+    public function disable_emojis_tinymce($plugins)
+    {
+        if (is_array($plugins)) {
+            return array_diff($plugins, array('wpemoji'));
+        } else {
+            return array();
+        }
+    }
 }
 
 $wordpress_feature_remover = new WordPress_Feature_Remover();
@@ -540,3 +545,11 @@ function wp_feature_remover_add_settings_link($links)
     array_unshift($links, $settings_link);
     return $links;
 }
+
+// Activation hook
+function wp_feature_remover_activate()
+{
+    $remover = new WordPress_Feature_Remover();
+    $remover->init_options();
+}
+register_activation_hook(__FILE__, 'wp_feature_remover_activate');
