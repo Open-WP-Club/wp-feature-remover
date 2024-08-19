@@ -1,0 +1,48 @@
+.wp-feature-remover-tabs {
+    overflow: hidden;
+    border: 1px solid #ccc;
+    background-color: #f1f1f1;
+    margin-bottom: 20px;
+}
+
+.wp-feature-remover-tabs button {
+    background-color: inherit;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 14px 16px;
+    transition: 0.3s;
+}
+
+.wp-feature-remover-tabs button:hover {
+    background-color: #ddd;
+}
+
+.wp-feature-remover-tabs button.active {
+    background-color: #ccc;
+}
+
+.wp-feature-remover-tab-content {
+    display: none;
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    border-top: none;
+}
+
+.wp-feature-remover-tab-content.active {
+    display: block;
+}
+
+.form-table th {
+    width: 200px;
+}
+
+.form-table td {
+    padding: 15px 10px;
+}
+
+.form-table .description {
+    margin-top: 5px;
+    font-style: italic;
+}
